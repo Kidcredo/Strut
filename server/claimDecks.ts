@@ -7,6 +7,7 @@
 // live subscribers reconcile: the guest's decksQuery loses the decks, the account's gains them. Only the
 // user-keyed columns move — deck.owner_id (the decks themselves) and deck_share.user_id (collaborations
 // the guest was granted). The guest's user_profile PK is left alone (the real account keeps its own).
+// Both UPDATEs are keyed on the guest id, so a retried claim matches no rows — no dedup key needed.
 
 import { HttpRindleDaemonClient } from '@rindle/daemon-client'
 import { daemonUrl } from './rindleEnv.ts'
@@ -19,7 +20,6 @@ export async function claimDecks(from: string, to: string): Promise<void> {
     headers: { authorization: `Bearer ${process.env.RINDLE_DAEMON_TOKEN ?? ''}` },
   })
   const out = await daemon.executeSqlTxn({
-    idempotencyKey: `claim:${from}->${to}`,
     statements: [
       { sql: 'UPDATE deck SET owner_id = ? WHERE owner_id = ?', params: [to, from] },
       {

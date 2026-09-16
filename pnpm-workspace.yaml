@@ -9,6 +9,11 @@ allowBuilds:
   sharp: false
   unrs-resolver: true
   workerd: true
+overrides:
+  # @rindle/cli@0.10.5 was published with `"@rindle/agent-context": "workspace:*"` left unrewritten, which
+  # no install outside the rindle monorepo can resolve (ERR_PNPM_WORKSPACE_PKG_NOT_FOUND). Point it at the
+  # release that shipped alongside it. Drop this once the CLI is republished with a real version.
+  '@rindle/cli>@rindle/agent-context': 0.10.5
 minimumReleaseAgeExclude:
   - '@rindle/api-server@0.4.4'
   - '@rindle/cli-darwin-arm64@0.4.4'
