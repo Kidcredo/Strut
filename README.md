@@ -18,7 +18,8 @@ world (the impress.js model, made visual and editable).
 
 - **Rindle fleet** — a `rindle-replicator` write-master + one `rindled` follower (which owns the
   live-query WebSocket), fronted by a `rindle-dev-edge` ingress that serves control, reads and ws on a
-  single port: `127.0.0.1:22050`. Shape comes from `rindle.ncl`; `rindle up`/`dev` render and supervise it.
+  single port. Shape comes from `rindle.ncl`; `rindle up`/`dev` render and supervise it. Local ports are
+  allocated per checkout (`~/.rindle/ports.json`) and rendered into `rindle.json`.
 - **API** — TanStack Start server routes (`src/routes/api.rindle.*`) host the stateless Rindle API
   (`server/rindle-api.ts`): they validate args, run authoritative SQL mutators, and register the named
   queries. Same-origin, no separate process. Image uploads (`server/upload.ts`) go to Cloudflare R2 —
@@ -26,7 +27,7 @@ world (the impress.js model, made visual and editable).
   predicted client mutators in `shared/app-def.ts`.
 - **Browser client** (`src/rindle/*`) — the optimistic store (`@rindle/optimistic` + WASM), `useQuery`
   live reads, and `app.mutate.*` writes, posting to `/api/rindle/*`. The live-query WebSocket connects
-  directly to the fleet ingress (`:22050`).
+  directly to the fleet ingress.
 
 Schema lives in `migrations/`; `shared/` holds the generated schema, query builder, named queries, and
 client mutators (imported by both browser and server). App code is in `src/` (`routes/`, `editor/`,
@@ -64,12 +65,12 @@ pnpm daemon   # fleet + migration/schema watcher
 pnpm dev:web  # web app + same-origin API routes; expects the fleet to already be running
 ```
 
-Both legs default to the fleet ingress — `http://127.0.0.1:22050` for control/reads and
-`ws://127.0.0.1:22050` for the live-query WebSocket. `rindle dev`/`exec` inject the real bindings
-(`RINDLE_URL`, and under `exec` also `RINDLE_DAEMON_URL`/`RINDLE_FLEET_WS`), so the defaults only
-matter when you run `pnpm dev:web` on its own. Override with `RINDLE_DAEMON_URL` for the server/API
-side, `RINDLE_DAEMON_WS` for the WS URL the server hands the browser (`/api/rindle/config`), or
-`VITE_RINDLE_WS` as a build-time client fallback. See `server/rindleEnv.ts`.
+Both legs go through the fleet ingress, whose port is allocated per checkout. `rindle dev`/`exec`
+inject it (`RINDLE_URL`, and under `exec` also `RINDLE_DAEMON_URL`/`RINDLE_FLEET_WS`); run on its own,
+`pnpm dev:web` reads it from the `rindle.json` that `pnpm daemon` renders, the same way the `rindle` CLI
+finds a local target. There is no hardcoded localhost default. Override with `RINDLE_DAEMON_URL` for the
+server/API side, `RINDLE_DAEMON_WS` for the WS URL the server hands the browser (`/api/rindle/config`),
+or `VITE_RINDLE_WS` as a build-time client fallback. See `server/rindleEnv.ts`.
 
 Other scripts:
 

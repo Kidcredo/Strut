@@ -506,3 +506,23 @@ green typecheck says almost nothing about whether the app still *runs*.
   `releaseDelayMs` on `useQuery`/`useFragment`; and `tx.sql` replacing the raw `tx.exec` shorthand. Also
   `MaterializeOutput.wsEndpoint` was replaced by an opaque `affinity` ticket — strut reads neither, so the
   follower-affinity routing is handled entirely inside `@rindle/api-server`.
+
+### 🟡 23. Upgrading 0.9.0 → 0.10.5: one API break, one broken publish, and a correction to #22
+
+- **`SqlTxn.idempotencyKey` → `producer: { id, seq }`** (`@rindle/daemon-client`). `tsc` caught it. The new
+  field is a Kafka-style gapless watermark whose ids are meant to be few and stable, so it's the wrong tool
+  for a one-off key like `claim:${from}->${to}`. `server/claimDecks.ts` just drops the key: its UPDATEs are
+  keyed on the guest id, so a retry matches no rows.
+- **🔴 `@rindle/cli@0.10.5` can't be installed.** It shipped `"@rindle/agent-context": "workspace:*"`
+  unrewritten (`ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`; npm says `EUNSUPPORTEDPROTOCOL`). Strut pins it with a
+  pnpm override (`pnpm-workspace.yaml`). The release scripts now refuse such a tarball. **Ask:** republish.
+- **Correction to #22: `:22050` was never a fixed port.** The CLI allocates each project root its own
+  100-port block (`~/.rindle/ports.json`; 0.9.0 already did), and the dev-edge ingress sits at base + 50.
+  22050 was just the block the 0.9 upgrade machine got; this checkout gets 32250. `server/rindleEnv.ts`
+  now resolves like the CLI (env, then the rendered `rindle.json` bindings, then a clear error) instead of
+  guessing a localhost port.
+- **FYI: `executeSqlTxn` on a replicated fleet answers `{ applied: true, cursor }`, not `cv`/`txId`** — and
+  a txn that changes no rows answers just `{ applied: false }`. Every field is optional in `SqlTxnOutput`,
+  so a log reading `out.cv` compiles and prints `undefined`.
+- **✅ Runtime:** fleet boot, 14 migrations, byte-identical `shared/schema.ts`, live two-tab sync (~250ms),
+  reload persistence, and read-guards all unchanged.

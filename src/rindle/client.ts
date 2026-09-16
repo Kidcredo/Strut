@@ -41,10 +41,10 @@ async function ensureSession(): Promise<string> {
 }
 
 // The live-query WebSocket URL. Resolved at RUNTIME from the server (/api/rindle/config, backed by the
-// RINDLE_DAEMON_WS host env var) so a single production build can target any daemon host — no rebuild
-// per environment. Falls back to a build-time override (VITE_RINDLE_WS, handy for local dev) and then
-// the local daemon default.
-async function resolveWsUrl(): Promise<string> {
+// RINDLE_DAEMON_WS host env var, or the local fleet's rindle.json in dev) so a single production build
+// can target any daemon host — no rebuild per environment. Falls back to a build-time override
+// (VITE_RINDLE_WS). There is no localhost default: local fleet ports differ per checkout.
+async function resolveWsUrl(): Promise<string | undefined> {
   try {
     const res = await fetch(appPath('/api/rindle/config'))
     if (res.ok) {
@@ -52,9 +52,14 @@ async function resolveWsUrl(): Promise<string> {
       if (wsUrl) return wsUrl
     }
   } catch {
-    // network/parse error — fall through to the build-time / local defaults
+    // network/parse error — fall through to the build-time override
   }
-  return import.meta.env.VITE_RINDLE_WS ?? 'ws://127.0.0.1:22050'
+  const fallback = import.meta.env.VITE_RINDLE_WS
+  if (!fallback)
+    console.error(
+      '[rindle] no live-query WebSocket configured — set RINDLE_DAEMON_WS on the server (or VITE_RINDLE_WS)',
+    )
+  return fallback
 }
 
 async function create() {

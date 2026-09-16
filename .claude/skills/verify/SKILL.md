@@ -12,7 +12,7 @@ browser and capture pixels, not run tests.
 ## Launch
 
 ```bash
-pnpm dev            # rindle dev: the local fleet (ingress :22050) + vite web on :3000
+pnpm dev            # rindle dev: the local fleet (ingress port per checkout, see rindle.json) + vite web on :3000
 ```
 
 **Auth env is REQUIRED for local dev** (or every `/api/auth/*` 500s → no guest session →

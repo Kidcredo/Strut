@@ -67,7 +67,7 @@ const config = defineConfig(({ mode }) => {
       port: 3000,
       // The Rindle API + image upload are now TanStack Start server routes (src/routes/api.rindle.*),
       // served same-origin — no separate API process, no proxy. The live-query WebSocket still
-      // connects directly to the daemon (:7601).
+      // connects directly to the fleet ingress (see server/rindleEnv.ts).
       // Don't let runtime-written files under .uploads/ (the local-disk dev fallback for image uploads
       // and runnable artifacts) trip the HMR watcher — otherwise saving one forces a full page reload
       // mid-edit (e.g. right after every artifact "Run"). Prod builds on Workers never write here.

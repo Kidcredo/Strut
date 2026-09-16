@@ -9,7 +9,7 @@
   "scripts": {
     "daemon": "rindle up --migrate --gen shared/schema.ts --watch",
     "setup": "rindle migrate apply && rindle schema gen --out shared/schema.ts",
-    "// dev": "`rindle dev` owns the local fleet (replicator + follower + dev-edge ingress) for the lifetime of the web command, and injects RINDLE_URL — the ingress at 127.0.0.1:22050, http + ws on one port — which server/rindleEnv.ts resolves, so nothing hardcodes a daemon port.",
+    "// dev": "`rindle dev` owns the local fleet (replicator + follower + dev-edge ingress) for the lifetime of the web command, and injects RINDLE_URL — the ingress, http + ws on one port, at a port allocated per checkout — which server/rindleEnv.ts resolves, so nothing hardcodes a daemon port.",
     "dev": "rindle dev --migrate --gen shared/schema.ts --watch -- pnpm dev:web",
     "dev:web": "vite dev --port 3000",
     "generate-routes": "tsr generate",

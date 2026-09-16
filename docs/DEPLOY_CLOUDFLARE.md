@@ -43,8 +43,8 @@ small VM/VPS, Fly.io, Railway, Render, a container platform, etc. Requirements:
   - the **live-query WebSocket** as `wss://…` → `RINDLE_DAEMON_WS` (server env), which the Worker
     hands to the browser at runtime via `/api/rindle/config` — so no client rebuild per host
 
-  Since Rindle 0.9 both are the SAME ingress port (`:22050` locally); the pre-0.9 split
-  `:7600`/`:7601` daemon no longer exists.
+  Since Rindle 0.9 both are the SAME ingress port (locally, a port allocated per checkout); the
+  pre-0.9 split `:7600`/`:7601` daemon no longer exists.
 
 > If you don't want to operate a daemon yet, deploy the Worker anyway — it serves and builds fine —
 > but reads/writes will fail until `RINDLE_DAEMON_URL` points at a running fleet.

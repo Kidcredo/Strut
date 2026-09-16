@@ -7,9 +7,9 @@ import { daemonWsUrl } from '../../server/rindleEnv.ts'
 // baked into the client bundle — so one production build can target any daemon host without a rebuild.
 // It's just a public endpoint URL, not a secret. See src/rindle/client.ts + docs/DEPLOY_CLOUDFLARE.md.
 //
-// `server/rindleEnv.ts` also accepts the bindings `rindle dev`/`exec` inject locally, so `pnpm dev`
-// needs no WS env of its own; it still answers '' when nothing is configured, leaving the client's
-// build-time override in charge.
+// `server/rindleEnv.ts` also accepts the bindings `rindle dev`/`exec` inject and the local fleet's
+// rindle.json, so local dev needs no WS env of its own; it still answers '' when nothing is configured,
+// leaving the client's build-time override in charge.
 export const Route = createFileRoute('/api/rindle/config')({
   server: {
     handlers: {

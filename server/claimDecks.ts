@@ -3,7 +3,7 @@
 // never reachable from the public /api/rindle route — so a client can never call it to steal another
 // user's decks. Isolated in its own module so the daemon wiring loads only on the (rare) promotion path.
 //
-// The reassignment is a single authoritative daemon SQL txn (executeSqlTxn → versioned `cv`/`txId`), so
+// The reassignment is a single authoritative daemon SQL txn (executeSqlTxn → the master's `cursor`), so
 // live subscribers reconcile: the guest's decksQuery loses the decks, the account's gains them. Only the
 // user-keyed columns move — deck.owner_id (the decks themselves) and deck_share.user_id (collaborations
 // the guest was granted). The guest's user_profile PK is left alone (the real account keeps its own).
@@ -29,6 +29,6 @@ export async function claimDecks(from: string, to: string): Promise<void> {
     ],
   })
   console.log(
-    `[claim] reassigned guest ${from} → account ${to} (cv=${out.cv}, txId=${out.txId})`,
+    `[claim] reassigned guest ${from} → account ${to} (applied=${out.applied}, cursor=${out.cursor})`,
   )
 }

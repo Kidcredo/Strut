@@ -12,8 +12,7 @@
 //     `tx.exec` escape hatch with the gate IN the SQL (accepted-but-no-op for a non-owner/-editor).
 //
 // Hosted by the TanStack Start server routes in src/routes/api.rindle.* (they import handleRindleJson).
-// The fleet is reached through the dev-edge ingress on :22050 (RINDLE_DAEMON_URL), http + ws on one
-// port; `rindle dev`/`exec` inject it.
+// The fleet is reached through one ingress, http + ws on the same port; server/rindleEnv.ts resolves it.
 
 import {
   createRindleApiServer,

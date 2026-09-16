@@ -9,9 +9,10 @@
 # Local dev runs off THIS file — see package.json `daemon`/`dev`. Rindle 0.9 dropped the legacy
 # single-daemon path (the hand-written `daemon.json`, ports 7600/7601) along with the `dev` profile
 # and its `daemonHttpPort`/`daemonWsPort` inputs; the whole fleet is now reached through the dev-edge
-# ingress on ONE port, 127.0.0.1:22050 (http + ws). `rindle dev` injects it into the app command as
-# RINDLE_URL (`rindle exec` adds RINDLE_DAEMON_URL / RINDLE_FLEET_WS); server/rindleEnv.ts takes any
-# of them.
+# ingress on ONE port (http + ws). No port is pinned here: the CLI allocates each checkout its own
+# block (`~/.rindle/ports.json`), so worktrees don't collide. `rindle dev` injects the ingress into
+# the app command as RINDLE_URL (`rindle exec` adds RINDLE_DAEMON_URL / RINDLE_FLEET_WS), and the
+# rendered `rindle.json` records it; server/rindleEnv.ts takes any of them.
 #
 # It is also what the CLOUD tooling reads:
 #   rindle deploy                # ensure/re-attach the managed app on Rindle Cloud (headwaters)
