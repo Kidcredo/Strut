@@ -78,8 +78,8 @@
   //   BETTER_AUTH_URL    — the deployed origin (e.g. https://strut.example.com). Better-Auth uses it for
   //                        OAuth redirect/callback URLs + trusted origins. Local dev: http://localhost:3000.
   "vars": {
-    "RINDLE_DAEMON_URL": "https://rindle-a218b5eae4fd49bc.fly.dev:8443",
-    "RINDLE_DAEMON_WS": "wss://rindle-a218b5eae4fd49bc.fly.dev",
+    "RINDLE_DAEMON_URL": "https://app-5fe57216390f45d1.rindle.cloud",
+    "RINDLE_DAEMON_WS": "wss://app-5fe57216390f45d1.rindle.cloud",
     "R2_PUBLIC_BASE_URL": "",
     "ARTIFACT_ORIGIN": "https://sandbox.strut.io",
     "BETTER_AUTH_URL": "https://strut.io",

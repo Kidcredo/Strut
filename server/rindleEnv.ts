@@ -13,6 +13,7 @@
 interface LocalBindings {
   readHttpUrl?: string
   subscribeWsUrl?: string
+  databaseToken?: string
 }
 
 /** The bindings in ./rindle.json, or {} when no local topology has been rendered (a deploy, or a fresh
@@ -41,6 +42,23 @@ export function daemonUrl(): string {
       '[rindle] no fleet to connect to: run `pnpm dev` (or `pnpm daemon` first), or set RINDLE_DAEMON_URL',
     )
   return url
+}
+
+/** The server-side bearer for the ingress: the query-lease control plane AND the SQL leg mutations
+ *  write through (`/v1/sql/*`). Deploys set RINDLE_DAEMON_TOKEN (a wrangler secret); `rindle dev` injects
+ *  RINDLE_DATABASE_TOKEN; `pnpm daemon` + `pnpm dev:web` read it from ./rindle.json. Never sent to the
+ *  browser. A managed fleet scopes it to exactly those APIs — the legacy daemon SQL endpoints
+ *  (`/execute-sql-txn`, `/mutate-session/*`) answer 401 — so every write goes through the SQL leg. */
+export function daemonToken(): string {
+  const token =
+    process.env.RINDLE_DAEMON_TOKEN ??
+    process.env.RINDLE_DATABASE_TOKEN ??
+    localBindings().databaseToken
+  if (!token)
+    throw new Error(
+      '[rindle] no fleet token: run `pnpm dev` (or `pnpm daemon` first), or set RINDLE_DAEMON_TOKEN',
+    )
+  return token
 }
 
 /** The live-query WebSocket the BROWSER should open, or `''` when nothing is configured — the client

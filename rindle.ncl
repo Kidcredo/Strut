@@ -20,7 +20,7 @@
 #
 # The `app` name below becomes the cloud `displayName` and groups every component under one app in
 # `rindle ps`. `followers = 1` is the Cloud Sync plan — our deployed app is
-# app_a218b5eae4fd49bc → rindle-a218b5eae4fd49bc.fly.dev.
+# app_5fe57216390f45d1 → https://app-5fe57216390f45d1.rindle.cloud (one ingress: http + wss on 443).
 {
   profile = "replicated",
   app = "strut",

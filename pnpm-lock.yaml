@@ -23,9 +23,6 @@ importers:
       '@rindle/client':
         specifier: ^0.10.5
         version: 0.10.5
-      '@rindle/daemon-client':
-        specifier: ^0.10.5
-        version: 0.10.5
       '@rindle/narrator':
         specifier: ^0.10.5
         version: 0.10.5
@@ -38,6 +35,9 @@ importers:
       '@rindle/react':
         specifier: ^0.10.5
         version: 0.10.5(react@19.2.7)
+      '@rindle/sql-client':
+        specifier: ^0.10.5
+        version: 0.10.5
       '@rindle/wasm':
         specifier: ^0.10.5
         version: 0.10.5

@@ -526,3 +526,26 @@ green typecheck says almost nothing about whether the app still *runs*.
   so a log reading `out.cv` compiles and prints `undefined`.
 - **✅ Runtime:** fleet boot, 14 migrations, byte-identical `shared/schema.ts`, live two-tab sync (~250ms),
   reload persistence, and read-guards all unchanged.
+
+### 🔴 24. Deploying 0.10.5 to managed Rindle Cloud: reads work, every write 401s — local dev can't catch it
+
+- **Symptom.** Strut on its first managed (headwaters) app: query leases 200, the browser's `wss://` subscribe
+  101, and every `/api/rindle/mutate` 500s with `rindle daemon request failed: 401 Unauthorized`. The same
+  build is fully green against `pnpm dev`.
+- **Cause.** Strut still wired the API server the pre-0.10 way, with an explicit
+  `daemon: new HttpRindleDaemonClient({ baseUrl, headers: { authorization } })` and no `database`. With no SQL
+  leg, `createRindleApiServer` falls back to `daemonBackend`, which writes through the daemon's own SQL
+  endpoints (`/execute-sql-txn`, `/mutate-session/*`, also `/execute-sql-read`). The managed ingress scopes
+  the app's database token to the query-lease control plane and `/v1/sql/*`, so those endpoints answer 401
+  for it. The local dev-edge accepts them, so dev never shows the difference.
+- **Fix.** `rindle: { url, wsUrl, token }` (the README's documented setup), which derives the SQL leg, so
+  mutations write through `/v1/sql/mutations/*`. `server/claimDecks.ts` moved off `executeSqlTxn` to
+  `@rindle/sql-client`'s atomic `batch`. `server/rindleEnv.ts` gained `daemonToken()`
+  (`RINDLE_DAEMON_TOKEN` → `RINDLE_DATABASE_TOKEN` → `rindle.json` `bindings.databaseToken`).
+- **Also: the DB token can't migrate.** `rindle migrate apply --url … --token …` answers
+  `unauthorized — set --token or $RINDLE_TOKEN` even with the right token, which is misleading. Schema goes
+  through the control plane: `rindle login` + `rindle migrate apply --cloud`.
+- **FYI:** a managed app ships a platform `kv` table, so `rindle schema gen` against it emits one extra table
+  that `shared/schema.ts` (generated locally) lacks.
+- **Ask:** have the local dev-edge enforce the same token scopes as a managed app, or warn when
+  `createRindleApiServer` falls back to `daemonBackend`. As it stands, the first sign is prod writes failing.

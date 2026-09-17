@@ -1,4 +1,4 @@
-// Strut's Rindle API — stateless: validates args, runs AUTHORITATIVE writes against the daemon, and
+// Strut's Rindle API — stateless: validates args, runs AUTHORITATIVE writes through the SQL leg, and
 // registers the named queries. Mutators are ISOMORPHIC (shared/app-def.ts): `sharedApiMutators`
 // auto-drives the SAME body the client predicts, parsing untrusted wire args and injecting the
 // AUTHENTICATED principal. The ONLY explicit entries are the server-only AUTHORITY the client must not
@@ -7,7 +7,7 @@
 //     (owner OR editor-collaborator of the owning deck) via `tx.query` INSIDE the mutation txn, and
 //     throw `forbidden` if not — a hard reject the client's optimistic write snaps back from. The
 //     shared body stays read-free, so `.folded` hot paths (drag/keystroke) keep folding (the read is
-//     server-side only). Reads run through @rindle/query-compiler's sqlite dialect on the daemon.
+//     server-side only). Reads run through @rindle/query-compiler's sqlite dialect, in the mutation txn.
 //   - The two multi-table cascades (deleteDeck / deleteSlide) can't be keyed ops, so they keep the raw
 //     `tx.exec` escape hatch with the gate IN the SQL (accepted-but-no-op for a non-owner/-editor).
 //
@@ -30,10 +30,9 @@ import type {
   ServerMutationTx,
   SharedMutatorWithArgs,
 } from '@rindle/api-server'
-import { HttpRindleDaemonClient } from '@rindle/daemon-client'
 import { and, exists, or } from '@rindle/client'
 import { serverQueries } from './queries.ts'
-import { daemonUrl } from './rindleEnv.ts'
+import { daemonToken, daemonUrl, daemonWsUrl } from './rindleEnv.ts'
 import { getEntitlements } from './entitlements.ts'
 import {
   q,
@@ -49,7 +48,6 @@ import {
 
 export type User = string
 type ServerCtx = MutationContext<User>
-const DAEMON_URL = daemonUrl()
 
 // ---- principal + access predicates --------------------------------------------------------------
 
@@ -450,12 +448,15 @@ const apiMutators = defineApiMutators<User, ApiMutators<User>>({
 // ---- server wiring ------------------------------------------------------------------------------
 
 const api = createRindleApiServer<User>({
-  daemon: new HttpRindleDaemonClient({
-    baseUrl: DAEMON_URL,
-    headers: {
-      authorization: `Bearer ${process.env.RINDLE_DAEMON_TOKEN ?? ''}`,
-    },
-  }),
+  // One ingress, one key: query leases go to the control plane, authoritative mutation txns to the SQL
+  // leg (`/v1/sql/*`). A bare `daemon` client instead writes through the daemon's own SQL endpoints,
+  // which the local dev-edge serves but a managed (headwaters) fleet refuses — reads work, writes 401.
+  // `wsUrl` is the endpoint leases advertise; keep it the one /api/rindle/config serves.
+  rindle: {
+    url: daemonUrl(),
+    wsUrl: daemonWsUrl() || undefined,
+    token: daemonToken(),
+  },
   // `schema` drives the dialect SQL renderer for the LOGICAL mutator writes (tx.insert/update/…) AND
   // the read-compiler for the access-guard `tx.query` reads.
   schema,
