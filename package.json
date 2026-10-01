@@ -14,7 +14,7 @@
     "dev:web": "vite dev --port 3000 --host 0.0.0.0",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 3000 --host 0.0.0.0",
     "build:cf": "CF=1 vite build",
     "preview:cf": "CF=1 vite build && CF=1 vite preview",
     "deploy": "CF=1 vite build && wrangler deploy -c dist/server/wrangler.json",
